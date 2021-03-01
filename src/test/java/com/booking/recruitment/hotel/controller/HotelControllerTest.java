@@ -16,7 +16,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultMatcher;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -95,11 +94,19 @@ class HotelControllerTest {
   @Test
   @DisplayName("When hotel request by distance, should return top 3 result")
   void getTop3HotelsByDistance() throws Exception {
-    int LIMIT = 3;
     mockMvc
-            .perform(get("/hotel/search/1?sortBy=distance&limit=3"))
+            .perform(get("/hotel/search/1?sortBy=distance"))
             .andExpect(status().is2xxSuccessful())
             .andExpect(jsonPath("$", hasSize(3)));
+  }
+
+  @Test
+  @DisplayName("When hotel request by distance, should return top 4 result")
+  void getTopNHotelsByDistance() throws Exception {
+    mockMvc
+            .perform(get("/hotel/search/1?sortBy=distance&limit=4"))
+            .andExpect(status().is2xxSuccessful())
+            .andExpect(jsonPath("$", hasSize(4)));
   }
 
   @Test

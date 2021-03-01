@@ -2,6 +2,7 @@ package com.booking.recruitment.hotel.controller;
 
 import com.booking.recruitment.hotel.model.Hotel;
 import com.booking.recruitment.hotel.service.HotelService;
+import com.booking.recruitment.hotel.sorter.SortType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,7 +50,7 @@ public class HotelController {
     }
 
     @GetMapping("/search/{cityId}")
-    public List<Hotel> searchHotel(@PathVariable Long cityId, @RequestParam Optional<String> sortBy, @RequestParam Optional<Long> limit) {
+    public List<Hotel> searchHotel(@PathVariable Long cityId, @RequestParam Optional<SortType> sortBy, @RequestParam Optional<Long> limit) {
       return hotelService.getHotelsByCity(cityId, sortBy, limit);
     }
 }

@@ -2,18 +2,17 @@ package com.booking.recruitment.hotel.service.impl;
 
 import com.booking.recruitment.hotel.exception.BadRequestException;
 import com.booking.recruitment.hotel.exception.ElementNotFoundException;
-import com.booking.recruitment.hotel.model.City;
 import com.booking.recruitment.hotel.model.Hotel;
 import com.booking.recruitment.hotel.repository.HotelRepository;
 import com.booking.recruitment.hotel.service.CityService;
 import com.booking.recruitment.hotel.service.HotelService;
-import com.booking.recruitment.hotel.util.CommonUtil;
+import com.booking.recruitment.hotel.sorter.SortType;
+import com.booking.recruitment.hotel.sorter.Sorter;
+import com.booking.recruitment.hotel.sorter.SortingFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -38,25 +37,19 @@ class DefaultHotelService implements HotelService {
     }
 
     @Override
-    public List<Hotel> getHotelsByCity(Long cityId, Optional<String> sortingParam, Optional<Long> optionalLimit) {
+    public List<Hotel> getHotelsByCity(Long cityId, Optional<SortType> sortingParam, Optional<Long> optionalLimit) {
         List<Hotel> hotelList = hotelRepository.findAll().stream()
                 .filter((hotel) -> cityId.equals(hotel.getCity().getId()))
                 .collect(Collectors.toList());
 
-        if(sortingParam.isPresent() && "DISTANCE".equalsIgnoreCase(sortingParam.get())){
-            long limit = optionalLimit.isPresent() ? optionalLimit.get() : LIMIT_RECORD;
-            City city = cityService.getCityById(cityId);
-            Map<Hotel, Double> hotelDistanceMap = hotelList.stream()
-                    .collect(Collectors.toMap(hotel -> hotel, hotel -> CommonUtil.distanceCalculator(city, hotel)));
-
-            return hotelDistanceMap.entrySet().stream()
-                    .sorted(Comparator.comparing(Map.Entry::getValue))
-                    .limit(limit)
-                    .map(Map.Entry::getKey)
-                    .collect(Collectors.toList());
+        if (sortingParam.isPresent()) {
+            Sorter<Hotel> sorter = SortingFactory.getSorter(sortingParam.get());
+            hotelList = sorter.sort(hotelList, cityService.getCityById(cityId));
         }
 
-        return hotelList;
+        return hotelList.stream()
+                .limit(optionalLimit.isPresent() ? optionalLimit.get() : LIMIT_RECORD)
+                .collect(Collectors.toList());
     }
 
     @Override
